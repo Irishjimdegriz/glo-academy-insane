@@ -1,10 +1,10 @@
 'use strict';
 
 const partialSelectors = ['default', 'select'];
+let cities;
 
 const compare = (a, b) => {
   return b.count - a.count;
-
 }
 
 const makeInvisible = (elem) => {
@@ -15,10 +15,23 @@ const makeInvisible = (elem) => {
 
 const fillInput = (value) => {
   const cityInput = document.getElementById('select-cities'),
-  closeButton = cityInput.querySelector('.close-button');
+  closeButton = document.querySelector('.close-button');
 
   cityInput.value = value;
-  closeButton.classList.remove()
+  cityInput.focus();
+  closeButton.classList.remove('invisible');
+}
+
+const getLinkByCity = (cityName) => {
+  for (let item of cities["RU"]) {
+    for (let city of item.cities) {
+      if (city.name === cityName) {
+        return city.link;
+      }
+    }
+  }
+
+  return '';
 }
 
 const fillList = (partialSelector) => {
@@ -31,7 +44,7 @@ const fillList = (partialSelector) => {
     const countryTotalLine = document.createElement('div');
     countryTotalLine.classList.add('dropdown-lists__total-line');
 
-    countryTotalLine.innerHTML = ` <div class="dropdown-lists__country">${item.country}</div>
+    countryTotalLine.innerHTML = `<div class="dropdown-lists__country">${item.country}</div>
                             <div class="dropdown-lists__count">${item.count}</div>`;
 
     countryBlock.appendChild(countryTotalLine);
@@ -52,11 +65,10 @@ const fillList = (partialSelector) => {
     list.appendChild(countryBlock);
     //list.classList.add('invisible');
     list.addEventListener('click', (event) => {
-
-
       let target = event.target.closest('.dropdown-lists__total-line');
 
       if (target) {
+        let selectedCountry = target.querySelector('.dropdown-lists__country').textContent;
         partialSelectors.forEach((partialSelector) => {
           const list = document.querySelector(`.dropdown-lists__list--${partialSelector}`);
           list.classList.toggle('invisible');
@@ -67,20 +79,27 @@ const fillList = (partialSelector) => {
             blocks.forEach((block) => {
               block.classList.remove('invisible');
 
-              if (block.querySelector('.dropdown-lists__country').textContent != target.querySelector('.dropdown-lists__country').textContent) {
+              if (block.querySelector('.dropdown-lists__country').textContent != selectedCountry) {
                 block.classList.add('invisible');
               }
               //line
             });
           }
         });
+
+        fillInput(selectedCountry);
+      } else if (event.target.closest('.dropdown-lists__line')) {
+        let selectedCity = event.target.closest('.dropdown-lists__line').querySelector('.dropdown-lists__city').textContent;
+        fillInput(selectedCity);
+        let link = getLinkByCity(selectedCity);
+
+        const button = document.querySelector('.button');
+        button.href = link;
       }
     });
   }
 }
 
-
-let cities;
 
 fetch('db_cities.json', {
   method: "GET", 
@@ -107,16 +126,19 @@ fetch('db_cities.json', {
 const cityInput = document.getElementById('select-cities');
 
 cityInput.addEventListener('click', () => {
-  const defaultList = document.querySelector('.dropdown-lists__list--default');
+  const defaultList = document.querySelector('.dropdown-lists__list--default'),
+        autocompleteList = document.querySelector('.dropdown-lists__list--autocomplete');
 
-  defaultList.classList.remove('invisible');
+        if (autocompleteList.classList.contains('invisible')) {
+          defaultList.classList.remove('invisible');
+        }
 });
 
 cityInput.addEventListener('input', (event) => {
   const defaultList = document.querySelector('.dropdown-lists__list--default'), 
         selectList = document.querySelector('.dropdown-lists__list--select'),
         autocompleteList = document.querySelector('.dropdown-lists__list--autocomplete'),
-        target = event.target;
+        target = event.target,
         col = autocompleteList.querySelector('.dropdown-lists__col');
 
   makeInvisible(selectList);
@@ -125,6 +147,8 @@ cityInput.addEventListener('input', (event) => {
   if (target.value === '') {    
     makeInvisible(autocompleteList);
     defaultList.classList.remove('invisible');
+    const closeButton = document.querySelector('.close-button');
+    closeButton.classList.add('invisible');
   } else {
     autocompleteList.classList.remove('invisible');
 
@@ -160,4 +184,16 @@ cityInput.addEventListener('input', (event) => {
       col.append(cityLine);
     }
   }
+});
+
+const closeButton = document.querySelector('.close-button');
+closeButton.addEventListener('click', (event) => {
+  const cityInput = document.getElementById('select-cities'),
+        button = document.querySelector('.button'),
+        allLists = document.querySelectorAll('.dropdown-lists__list');
+
+  cityInput.value = '';
+  button.href = '#';
+  event.target.classList.add('invisible');
+  allLists.forEach((item) => makeInvisible(item));
 });
