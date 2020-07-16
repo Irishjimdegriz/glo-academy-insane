@@ -11,6 +11,9 @@ const cityInput = document.getElementById('select-cities'),
       button = document.querySelector('.button'),
       allLists = document.querySelectorAll('.dropdown-lists__list');
 
+let animationFrame,
+    mode = 0;
+
 const compare = (a, b) => {
   return b.count - a.count;
 }
@@ -74,23 +77,36 @@ const fillList = (partialSelector) => {
 
       if (target) {
         let selectedCountry = target.querySelector('.dropdown-lists__country').textContent;
-        partialSelectors.forEach((partialSelector) => {
-          const list = document.querySelector(`.dropdown-lists__list--${partialSelector}`);
-          list.classList.toggle('invisible');
 
-          if (partialSelector === 'select') {
-            const blocks = list.querySelectorAll('.dropdown-lists__countryBlock');
+        mode = selectList.classList.contains('invisible') ? 0 : (defaultList.classList.contains('invisible') ? 1 : -1);
 
-            blocks.forEach((block) => {
-              block.classList.remove('invisible');
+        defaultList.style.left = '0%';
+        defaultList.style.right = '0%';
+        selectList.style.left = '0%';
+        selectList.style.right = '0%';
+        animationFrame = animateLists(mode, 0);
 
-              if (block.querySelector('.dropdown-lists__country').textContent != selectedCountry) {
-                block.classList.add('invisible');
-              }
-              //line
-            });
-          }
-        });
+        if (mode === 0) {
+          const blocks = selectList.querySelectorAll('.dropdown-lists__countryBlock');
+
+          blocks.forEach((block) => {
+            block.classList.remove('invisible');
+
+            if (block.querySelector('.dropdown-lists__country').textContent != selectedCountry) {
+              block.classList.add('invisible');
+            }
+            //line
+          });
+        }
+
+        // partialSelectors.forEach((partialSelector) => {
+        //   const list = document.querySelector(`.dropdown-lists__list--${partialSelector}`);
+        //   list.classList.toggle('invisible');
+
+        //   if (partialSelector === 'select') {
+
+        //   }
+        // });
 
         fillInput(selectedCountry);
       } else if (event.target.closest('.dropdown-lists__line')) {
@@ -191,3 +207,31 @@ closeButton.addEventListener('click', (event) => {
   event.target.classList.add('invisible');
   allLists.forEach((item) => makeInvisible(item));
 });
+
+const animateLists = (mode, counter) => {
+
+  let firstElement, secondElement;
+
+  if (mode < 0) {
+    return;
+  } else if (mode === 0) {
+    firstElement = defaultList;
+    secondElement = selectList;
+  } else {
+    firstElement = selectList;
+    secondElement = defaultList;
+  }
+
+  counter+=2;
+  firstElement.style.left = `${counter}%`;
+  secondElement.style.right = `${100 - counter}%`;
+    
+
+  if (counter < 100) {
+    animationFrame = requestAnimationFrame(animateLists.bind(null, mode, counter));
+  } else {        
+    secondElement.classList.remove('invisible');
+    makeInvisible(firstElement);
+    cancelAnimationFrame(animationFrame);
+  }
+};

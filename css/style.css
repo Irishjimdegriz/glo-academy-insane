@@ -125,10 +125,13 @@ body .main .input-cities label {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
+  overflow: hidden;
 }
 
 .dropdown-lists__list {
   width: 100%;
+  position: relative; 
+  flex-basis: 100%;
 }
 
 .invisible {
