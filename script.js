@@ -3,6 +3,14 @@
 const partialSelectors = ['default', 'select'];
 let cities;
 
+const cityInput = document.getElementById('select-cities'),
+      closeButton = document.querySelector('.close-button'),
+      defaultList = document.querySelector('.dropdown-lists__list--default'), 
+      selectList = document.querySelector('.dropdown-lists__list--select'),
+      autocompleteList = document.querySelector('.dropdown-lists__list--autocomplete'),
+      button = document.querySelector('.button'),
+      allLists = document.querySelectorAll('.dropdown-lists__list');
+
 const compare = (a, b) => {
   return b.count - a.count;
 }
@@ -14,9 +22,6 @@ const makeInvisible = (elem) => {
 }
 
 const fillInput = (value) => {
-  const cityInput = document.getElementById('select-cities'),
-  closeButton = document.querySelector('.close-button');
-
   cityInput.value = value;
   cityInput.focus();
   closeButton.classList.remove('invisible');
@@ -123,8 +128,6 @@ fetch('db_cities.json', {
     console.log(error);
 });
 
-const cityInput = document.getElementById('select-cities');
-
 cityInput.addEventListener('click', () => {
   const defaultList = document.querySelector('.dropdown-lists__list--default'),
         autocompleteList = document.querySelector('.dropdown-lists__list--autocomplete');
@@ -135,10 +138,7 @@ cityInput.addEventListener('click', () => {
 });
 
 cityInput.addEventListener('input', (event) => {
-  const defaultList = document.querySelector('.dropdown-lists__list--default'), 
-        selectList = document.querySelector('.dropdown-lists__list--select'),
-        autocompleteList = document.querySelector('.dropdown-lists__list--autocomplete'),
-        target = event.target,
+  const target = event.target,
         col = autocompleteList.querySelector('.dropdown-lists__col');
 
   makeInvisible(selectList);
@@ -147,7 +147,6 @@ cityInput.addEventListener('input', (event) => {
   if (target.value === '') {    
     makeInvisible(autocompleteList);
     defaultList.classList.remove('invisible');
-    const closeButton = document.querySelector('.close-button');
     closeButton.classList.add('invisible');
   } else {
     autocompleteList.classList.remove('invisible');
@@ -186,12 +185,7 @@ cityInput.addEventListener('input', (event) => {
   }
 });
 
-const closeButton = document.querySelector('.close-button');
 closeButton.addEventListener('click', (event) => {
-  const cityInput = document.getElementById('select-cities'),
-        button = document.querySelector('.button'),
-        allLists = document.querySelectorAll('.dropdown-lists__list');
-
   cityInput.value = '';
   button.href = '#';
   event.target.classList.add('invisible');
