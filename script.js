@@ -7,7 +7,12 @@ const partialSelectors = ['default', 'select'],
       selectList = document.querySelector('.dropdown-lists__list--select'),
       autocompleteList = document.querySelector('.dropdown-lists__list--autocomplete'),
       button = document.querySelector('.button'),
-      allLists = document.querySelectorAll('.dropdown-lists__list');
+      allLists = document.querySelectorAll('.dropdown-lists__list'),
+      mainCountryMap = {
+        "RU": "Россия",
+        "EN": "United Kingdom",
+        "DE": "Deutschland"
+      };
 
 class CookieManager {
   getCookie(cname) {
@@ -65,6 +70,7 @@ const fillList = (partialSelector) => {
     item.cities = item.cities.sort(compare);
 
     const limit = partialSelector === 'default' ? 3 : item.cities.length;
+
     for (let i = 0; i < limit; i++) {
       const totalLine = document.createElement('div');
       totalLine.classList.add('dropdown-lists__line');
@@ -75,7 +81,11 @@ const fillList = (partialSelector) => {
       countryBlock.appendChild(totalLine);
     }
 
-    list.appendChild(countryBlock);
+    if (item.country === mainCountryMap[locale]) {
+      list.prepend(countryBlock);
+    } else {
+      list.appendChild(countryBlock);
+    }
     //list.classList.add('invisible');
     list.addEventListener('click', (event) => {
       let target = event.target.closest('.dropdown-lists__total-line');
