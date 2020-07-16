@@ -1,9 +1,7 @@
 'use strict';
 
-const partialSelectors = ['default', 'select'];
-let cities;
-
-const cityInput = document.getElementById('select-cities'),
+const partialSelectors = ['default', 'select'],
+      cityInput = document.getElementById('select-cities'),
       closeButton = document.querySelector('.close-button'),
       defaultList = document.querySelector('.dropdown-lists__list--default'), 
       selectList = document.querySelector('.dropdown-lists__list--select'),
@@ -11,41 +9,48 @@ const cityInput = document.getElementById('select-cities'),
       button = document.querySelector('.button'),
       allLists = document.querySelectorAll('.dropdown-lists__list');
 
-let animationFrame,
-    mode = 0;
-
-const compare = (a, b) => {
-  return b.count - a.count;
-}
-
-const makeInvisible = (elem) => {
-  if (!elem.classList.contains('invisible')) {
-    elem.classList.add('invisible')
-  }
-}
-
-const fillInput = (value) => {
-  cityInput.value = value;
-  cityInput.focus();
-  closeButton.classList.remove('invisible');
-}
-
-const getLinkByCity = (cityName) => {
-  for (let item of cities["RU"]) {
-    for (let city of item.cities) {
-      if (city.name === cityName) {
-        return city.link;
+class CookieManager {
+  getCookie(cname) {
+    var name = cname + "=";
+    var decodedCookie = decodeURIComponent(document.cookie);
+    var ca = decodedCookie.split(';');
+    for(var i = 0; i <ca.length; i++) {
+      var c = ca[i];
+      while (c.charAt(0) == ' ') {
+        c = c.substring(1);
+      }
+      if (c.indexOf(name) == 0) {
+        return c.substring(name.length, c.length);
       }
     }
+    return "";
   }
 
-  return '';
+  setCookie(cname, cvalue, exdays) {
+    var d = new Date();
+    d.setTime(d.getTime() + (exdays*24*60*60*1000));
+    var expires = "expires="+ d.toUTCString();
+    document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+  }
+
+  deleteCookie(name) {
+      document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+  }
+
+}
+
+const askLocale = () => {
+  locale = prompt('Введите локаль - RU, EN или DE');
+
+  if (!availableLocales.includes(locale.toLowerCase())) {
+    askLocale();
+  }
 }
 
 const fillList = (partialSelector) => {
   const list = document.querySelector(`.dropdown-lists__list--${partialSelector}>.dropdown-lists__col`);
 
-  for (let item of cities["RU"]) {
+  for (let item of cities) {
     const countryBlock = document.createElement('div');
     countryBlock.classList.add('dropdown-lists__countryBlock');
 
@@ -99,15 +104,6 @@ const fillList = (partialSelector) => {
           });
         }
 
-        // partialSelectors.forEach((partialSelector) => {
-        //   const list = document.querySelector(`.dropdown-lists__list--${partialSelector}`);
-        //   list.classList.toggle('invisible');
-
-        //   if (partialSelector === 'select') {
-
-        //   }
-        // });
-
         fillInput(selectedCountry);
       } else if (event.target.closest('.dropdown-lists__line')) {
         let selectedCity = event.target.closest('.dropdown-lists__line').querySelector('.dropdown-lists__city').textContent;
@@ -121,28 +117,81 @@ const fillList = (partialSelector) => {
   }
 }
 
+const compare = (a, b) => {
+  return b.count - a.count;
+}
 
-fetch('db_cities.json', {
-  method: "GET", 
-  headers: {
-    'Content-Type': 'application/json'
-  }})
-  .then((response) => {
-    if (response.status !== 200) {
-      throw new Error(`Что-то пошло не так, код ошибки - ${response.status}`);
+const makeInvisible = (elem) => {
+  if (!elem.classList.contains('invisible')) {
+    elem.classList.add('invisible')
+  }
+}
+
+const fillInput = (value) => {
+  cityInput.value = value;
+  cityInput.focus();
+  closeButton.classList.remove('invisible');
+}
+
+const getLinkByCity = (cityName) => {
+  for (let item of cities) {
+    for (let city of item.cities) {
+      if (city.name === cityName) {
+        return city.link;
+      }
     }
+  }
 
-    return response.json()
-  })
-  .then((response) => {
-    cities = response;
-    console.log(cities);
+  return '';
+}
 
+const availableLocales = ['ru', 'en', 'de'];
+let locale,
+    cities = null;
+
+const cookieManager = new CookieManager();
+
+locale = cookieManager.getCookie("locale");
+
+if (locale === '') {
+  askLocale();
+  locale = locale.toUpperCase();
+  cookieManager.setCookie("locale", locale, 10000);
+} else {
+  if (localStorage[locale] !== undefined) {
+    cities = JSON.parse(localStorage[locale]);
     partialSelectors.forEach((item) => fillList(item));
-  })
-  .catch((error) => {
-    console.log(error);
-});
+  }
+}
+
+
+
+let animationFrame,
+    mode = 0;
+
+
+if (cities === null) {
+  fetch('db_cities.json', {
+    method: "GET", 
+    headers: {
+      'Content-Type': 'application/json'
+    }})
+    .then((response) => {
+      if (response.status !== 200) {
+        throw new Error(`Что-то пошло не так, код ошибки - ${response.status}`);
+      }
+
+      return response.json()
+    })
+    .then((response) => {
+      cities = response[locale];
+      localStorage[locale] = JSON.stringify(cities);
+      partialSelectors.forEach((item) => fillList(item));
+    })
+    .catch((error) => {
+      console.log(error);
+  });
+}
 
 cityInput.addEventListener('click', () => {
   const defaultList = document.querySelector('.dropdown-lists__list--default'),
@@ -172,7 +221,7 @@ cityInput.addEventListener('input', (event) => {
     let fittingCities = [],
         regexp = new RegExp(`^${target.value}`, 'ig');
 
-    for (let item of cities.RU) {
+    for (let item of cities) {
       for (let city of item.cities) {
         if (regexp.test(city.name)) {
           fittingCities.push(city);
