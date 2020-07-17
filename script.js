@@ -246,7 +246,11 @@ cityInput.addEventListener('input', (event) => {
     for (let item of cities) {
       for (let city of item.cities) {
         if (regexp.test(city.name)) {
-          fittingCities.push(city);
+          let cityObject = {
+            name: city.name,
+            country: item.country
+          };
+          fittingCities.push(cityObject);
         }
       }
     }
@@ -257,7 +261,7 @@ cityInput.addEventListener('input', (event) => {
         cityLine.classList.add('dropdown-lists__line');
 
         cityLine.innerHTML = `<div class="dropdown-lists__city">${city.name}</div>
-                              <div class="dropdown-lists__count">${city.count}</div>`;
+                              <div class="dropdown-lists__count">${city.country}</div>`;
 
         col.append(cityLine);
       }
