@@ -117,14 +117,12 @@ body .main .input-cities label {
   width: 100%;
   background: #fff;
   max-height: 300px;
-  overflow: auto;
+  overflow: hidden;
 }
 
 .dropdown-lists {
   width: 100%;
   display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
   overflow: hidden;
 }
 
@@ -220,3 +218,8 @@ body .main .input-cities label {
   transition: 0.4s;
 }
 /*# sourceMappingURL=style.css.map */
+
+.preloader {
+  position: absolute;
+  top: calc(50% - var(--sk-size));
+}

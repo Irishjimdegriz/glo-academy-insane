@@ -7,6 +7,8 @@ const partialSelectors = ['default', 'select'],
       selectList = document.querySelector('.dropdown-lists__list--select'),
       autocompleteList = document.querySelector('.dropdown-lists__list--autocomplete'),
       button = document.querySelector('.button'),
+      preloader = document.querySelector('.preloader'),
+      mainDiv = document.querySelector('.input-cities'),
       allLists = document.querySelectorAll('.dropdown-lists__list'),
       mainCountryMap = {
         "RU": "Россия",
@@ -41,7 +43,11 @@ class CookieManager {
   deleteCookie(name) {
       document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
   }
+}
 
+const showGrid = () => {
+  makeInvisible(preloader);
+  mainDiv.classList.remove('invisible');
 }
 
 const askLocale = () => {
@@ -93,12 +99,13 @@ const fillList = (partialSelector) => {
       if (target) {
         let selectedCountry = target.querySelector('.dropdown-lists__country').textContent;
 
-        mode = selectList.classList.contains('invisible') ? 0 : (defaultList.classList.contains('invisible') ? 1 : -1);
+        //mode = selectList.classList.contains('invisible') ? 0 : (defaultList.classList.contains('invisible') ? 1 : -1);
 
-        defaultList.style.left = '0%';
-        defaultList.style.right = '0%';
-        selectList.style.left = '0%';
-        selectList.style.right = '0%';
+        // defaultList.style.left = '0%';
+        // defaultList.style.right = '0%';
+        // selectList.style.left = '0%';
+        // selectList.style.right = '0%';
+        mode = selectList.style.right === "100%" ? 1 : (selectList.style.right === "0%" || selectList.style.right === ""? 0 : -1);
         animationFrame = animateLists(mode, 0);
 
         if (mode === 0) {
@@ -171,6 +178,7 @@ if (locale === '') {
   if (localStorage[locale] !== undefined) {
     cities = JSON.parse(localStorage[locale]);
     partialSelectors.forEach((item) => fillList(item));
+    setTimeout(showGrid, 2000);
   }
 }
 
@@ -197,6 +205,7 @@ if (cities === null) {
       cities = response[locale];
       localStorage[locale] = JSON.stringify(cities);
       partialSelectors.forEach((item) => fillList(item));
+      setTimeout(showGrid, 2000);
     })
     .catch((error) => {
       console.log(error);
@@ -204,11 +213,9 @@ if (cities === null) {
 }
 
 cityInput.addEventListener('click', () => {
-  const defaultList = document.querySelector('.dropdown-lists__list--default'),
-        autocompleteList = document.querySelector('.dropdown-lists__list--autocomplete');
-
         if (autocompleteList.classList.contains('invisible')) {
           defaultList.classList.remove('invisible');
+          selectList.classList.remove('invisible');
         }
 });
 
@@ -222,11 +229,16 @@ cityInput.addEventListener('input', (event) => {
   if (target.value === '') {    
     makeInvisible(autocompleteList);
     defaultList.classList.remove('invisible');
+    selectList.classList.remove('invisible');
     closeButton.classList.add('invisible');
+
+    defaultList.style.right = `0%`;
+    selectList.style.right = `0%`;
   } else {
     autocompleteList.classList.remove('invisible');
 
     makeInvisible(defaultList);
+    makeInvisible(selectList);
 
     let fittingCities = [],
         regexp = new RegExp(`^${target.value}`, 'ig');
@@ -263,34 +275,49 @@ cityInput.addEventListener('input', (event) => {
 closeButton.addEventListener('click', (event) => {
   cityInput.value = '';
   button.href = '#';
-  event.target.classList.add('invisible');
+  makeInvisible(event.target);//.classList.add('invisible');
   allLists.forEach((item) => makeInvisible(item));
 });
 
 const animateLists = (mode, counter) => {
 
-  let firstElement, secondElement;
+  // let firstElement, secondElement;
+
+  // if (mode < 0) {
+  //   return;
+  // } else if (mode === 0) {
+  //   firstElement = defaultList;
+  //   secondElement = selectList;
+  // } else {
+  //   firstElement = selectList;
+  //   secondElement = defaultList;
+  // }
+
+  // secondElement.classList.remove('invisible');
+
+  counter+=4;
 
   if (mode < 0) {
-    return;
+     return;
   } else if (mode === 0) {
-    firstElement = defaultList;
-    secondElement = selectList;
+    defaultList.style.right = `${counter}%`;
+    selectList.style.right = `${counter}%`;
   } else {
-    firstElement = selectList;
-    secondElement = defaultList;
+    defaultList.style.right = `${100 - counter}%`;
+    selectList.style.right = `${100 - counter}%`;
   }
-
-  counter+=2;
-  firstElement.style.left = `${counter}%`;
-  secondElement.style.right = `${100 - counter}%`;
     
 
   if (counter < 100) {
     animationFrame = requestAnimationFrame(animateLists.bind(null, mode, counter));
   } else {        
-    secondElement.classList.remove('invisible');
-    makeInvisible(firstElement);
+    //makeInvisible(firstElement);
     cancelAnimationFrame(animationFrame);
+
+    if (mode === 0) {
+      mode = 1;
+    } else if (mode === 1) {
+      mode = 0;
+    }
   }
 };
